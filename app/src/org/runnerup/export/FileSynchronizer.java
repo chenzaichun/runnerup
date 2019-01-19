@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Locale;
+import java.util.Date;
 
 
 public class FileSynchronizer extends DefaultSynchronizer {
@@ -151,22 +152,34 @@ public class FileSynchronizer extends DefaultSynchronizer {
         Sport sport = Sport.RUNNING;
         try {
             String[] columns = {
-                    Constants.DB.ACTIVITY.SPORT
+                    Constants.DB.ACTIVITY.SPORT,
+                    Constants.DB.ACTIVITY.START_TIME
             };
             Cursor c = null;
+            int time = 0;
             try {
                 c = db.query(Constants.DB.ACTIVITY.TABLE, columns, "_id = " + mID,
                         null, null, null, null);
                 if (c.moveToFirst()) {
                     sport = Sport.valueOf(c.getInt(0));
+                    time = c.getInt(1);
                 }
             } finally {
                 if (c != null) {
                     c.close();
                 }
             }
+
+            Date date = new java.util.Date(time*1000L);
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMddHHmmss");
+// give a timezone reference for formatting (see comment at the bottom)
+            //sdf.setTimeZone(java.util.TimeZone.getTimeZone("GMT-8"));
+            String formattedDate = sdf.format(date);
+            System.out.println(formattedDate);
             String fileBase = new File(mPath).getAbsolutePath() + File.separator +
-                    String.format(Locale.getDefault(), "RunnerUp_%04d_%s.", mID, sport.TapiriikType());
+                    String.format(Locale.getDefault(), "RunnerUp_%04d_%s_%s.", mID,
+                            formattedDate,
+                            sport.TapiriikType());
             
             if (mFormat.contains("tcx")) {
                 TCX tcx = new TCX(db);

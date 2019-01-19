@@ -53,12 +53,14 @@ import android.widget.ImageView;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.Environment;
 
 import org.runnerup.R;
 import org.runnerup.common.util.Constants.DB;
 import org.runnerup.db.DBHelper;
 import org.runnerup.util.FileUtil;
 import org.runnerup.util.Formatter;
+import org.runnerup.workout.WorkoutSerializer;
 
 import java.io.File;
 import java.io.IOException;
@@ -166,9 +168,19 @@ public class MainLayout extends TabActivity
         }
         //GPS is essential, always nag user if not granted
         requestGpsPermissions(this, tabHost.getCurrentView());
+//        if(ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED ) {
+//            //if you dont have required permissions ask for it (only required for API 23+)
+//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, requestCode);
+//        }
 
         //Import workouts/schemes. No permission needed
-        handleBundled(getApplicationContext().getAssets(), "bundled", getFilesDir().getPath() + "/..");
+        //handleBundled(getApplicationContext().getAssets(), "bundled", getFilesDir().getPath() + "/..");
+        if (SettingsActivity.requestWriteStoragePermissions(this)) {
+            handleBundled(getApplicationContext().getAssets(), "bundled/app_workouts", WorkoutSerializer.getDataDir()+ "app_workouts");
+        }
+
+        handleBundled(getApplicationContext().getAssets(), "bundled/shared_prefs", getFilesDir().getPath() + "/..");
+
 
         // if we were called from an intent-filter because user opened "runnerup.db.export", load it
         final Uri data = getIntent().getData();
@@ -218,7 +230,7 @@ public class MainLayout extends TabActivity
 
                 if (!isFile) {
                     //The request is hierarchical, source is still on a directory level
-                    File dstDir = new File(dstBase);
+                    File dstDir = new File(dst);
                     //noinspection ResultOfMethodCallIgnored
                     dstDir.mkdir();
                     if (!dstDir.isDirectory()) {
@@ -229,23 +241,33 @@ public class MainLayout extends TabActivity
                     handleBundled(mgr, src, dst);
                 } else {
                     //Source is a file, ready to copy
+                    //Only copy if the key do not exist already
+                    String key = "install_bundled_" + add;
+                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+
                     File dstFile = new File(dst);
                     if (dstFile.isDirectory() || dstFile.isFile()) {
                         Log.v(getClass().getName(), "Skip: " + dst +
                                 ", isDirectory(): " + dstFile.isDirectory() +
                                 ", isFile(): " + dstFile.isFile());
+                        if (dstFile.isFile()) {
+                            if (!pref.contains(key)) {
+                                handleHooks(add);
+                                pref.edit().putBoolean(key, true).commit();
+                            } else {
+                                Log.v(getClass().getName(), "Skip already existing pref: " + key);
+                            }
+                        }
                         continue;
                     }
 
-                    //Only copy if the key do not exist already
-                    String key = "install_bundled_" + add;
-                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+
                     if (pref.contains(key)) {
                         Log.v(getClass().getName(), "Skip already existing pref: " + key);
+
                         continue;
                     }
 
-                    pref.edit().putBoolean(key, true).commit();
 
                     Log.v(getClass().getName(), "Copying: " + dst);
                     InputStream input = null;
@@ -253,6 +275,8 @@ public class MainLayout extends TabActivity
                         input = mgr.open(src);
                         FileUtil.copy(input, dst);
                         handleHooks(add);
+                        pref.edit().putBoolean(key, true).commit();
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     } finally {
@@ -315,7 +339,8 @@ public class MainLayout extends TabActivity
     }
 
     private static void requestGpsPermissions(final Activity activity, final View view) {
-        String[] requiredPerms = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+        String[] requiredPerms = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION,
+                };
         List<String> defaultPerms = new ArrayList<>();
         List<String> shouldPerms = new ArrayList<>();
         for (final String perm : requiredPerms) {

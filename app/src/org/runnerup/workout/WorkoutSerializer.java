@@ -41,11 +41,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Stack;
-
+import android.os.Environment;
 
 public class WorkoutSerializer {
 
-    public static final String WORKOUTS_DIR = "workouts";
+    public static final String WORKOUTS_DIR = "app_workouts";
 
     private static String getString(JSONObject obj, String key) {
         try {
@@ -53,6 +53,13 @@ public class WorkoutSerializer {
         } catch (JSONException e) {
         }
         return null;
+    }
+
+    public static String getDataDir() {
+        return Environment.getExternalStorageDirectory().getAbsolutePath() + "/RunnerUp/";
+    }
+    public static String getWorkoutsDir() {
+        return getDataDir() + WORKOUTS_DIR + "/";
     }
 
     private static Integer getInt(JSONObject obj, String key) {
@@ -457,7 +464,9 @@ public class WorkoutSerializer {
         if (!name.endsWith(".json")) {
             name += ".json";
         }
-        return new File(ctx.getDir(WORKOUTS_DIR, 0).getPath() + File.separator + name);
+        //return new File(ctx.getDir(WORKOUTS_DIR, 0).getPath() + File.separator + name);
+        return new File(getWorkoutsDir() + name);
+
     }
 
     public static Workout readFile(Context ctx, String name) throws FileNotFoundException,

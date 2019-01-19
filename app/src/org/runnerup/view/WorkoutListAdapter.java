@@ -18,11 +18,13 @@
 package org.runnerup.view;
 
 import android.content.Context;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import android.os.Environment;
 
 import org.runnerup.R;
 import org.runnerup.workout.WorkoutSerializer;
@@ -98,7 +100,10 @@ class WorkoutListAdapter extends BaseAdapter {
     }
 
     public static String[] load(Context ctx) {
-        File f = ctx.getDir(WorkoutSerializer.WORKOUTS_DIR, 0);
+
+        //File f =  new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/RunnerUp/app_workouts/");
+        File f = new File(WorkoutSerializer.getWorkoutsDir());
+        //File f = ctx.getDir(WorkoutSerializer.WORKOUTS_DIR, 0);
         return f.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String filename) {

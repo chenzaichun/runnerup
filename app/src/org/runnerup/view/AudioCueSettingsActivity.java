@@ -17,6 +17,7 @@
 
 package org.runnerup.view;
 
+import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -51,6 +52,7 @@ import org.runnerup.widget.WidgetUtil;
 import org.runnerup.workout.Feedback;
 import org.runnerup.workout.Workout;
 import org.runnerup.workout.WorkoutBuilder;
+import org.runnerup.workout.WorkoutSerializer;
 import org.runnerup.workout.feedback.RUTextToSpeech;
 
 import java.io.File;
@@ -70,6 +72,11 @@ public class AudioCueSettingsActivity extends PreferenceActivity {
     private String DEFAULT = "Default";
     public static final String SUFFIX = "_audio_cues";
     private static final String PREFS_DIR = "shared_prefs";
+
+
+    public static String getPrefDir() {
+        return WorkoutSerializer.getDataDir() + PREFS_DIR + "/";
+    }
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -236,6 +243,8 @@ public class AudioCueSettingsActivity extends PreferenceActivity {
         switchTo(null);
     }
 
+
+
     private void deleteAudioSchemeImpl(String name) {
         /*
          * Start by deleting file...then delete from table...so we don't get
@@ -243,6 +252,8 @@ public class AudioCueSettingsActivity extends PreferenceActivity {
          */
         File a = new File(getFilesDir().getAbsoluteFile() + "/../" + PREFS_DIR + "/" + name
                 + SUFFIX + ".xml");
+//        File a = new File(getPrefDir() + "/" + name
+//                + SUFFIX + ".xml");
         //noinspection ResultOfMethodCallIgnored
         a.delete();
 

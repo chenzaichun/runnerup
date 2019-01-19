@@ -135,7 +135,7 @@ public class SettingsActivity extends PreferenceActivity
         return ret;
     }
 
-    private static boolean requestWriteStoragePermissions(final Activity activity) {
+    public static boolean requestWriteStoragePermissions(final Activity activity) {
         boolean ret = true;
         if (ContextCompat.checkSelfPermission(activity,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
