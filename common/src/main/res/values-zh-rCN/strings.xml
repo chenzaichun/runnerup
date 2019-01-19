@@ -8,7 +8,7 @@
     <string name="Autolap_during_intervals">基于间隔来分段</string>
     <string name="Add_countdown_after_step_that_ends_with_user_press">在按键停止步骤之后添加倒计时</string>
     <string name="Step_countdown_time_s">步骤倒计时时间（秒）</string>
-    <string name="Smooth_pace_graph">平滑配速图标</string>
+    <string name="Smooth_pace_graph">平滑配速图表</string>
     <string name="Smooth_pace_filters">平滑配速过滤（秒）</string>
     <string name="Poll_interval_ms">GPS采集间隔（毫秒）</string>
     <string name="Poll_distance_m">GPS采集距离（米）</string>
@@ -210,7 +210,7 @@
     <string name="Notes">备注</string>
     <string name="Laps">分段</string>
     <string name="Map">地图</string>
-    <string name="Graph">图标</string>
+    <string name="Graph">图表</string>
     <string name="Upload">上传</string>
     <string name="Disconnect">断开</string>
     <string name="Resume">恢复</string>
