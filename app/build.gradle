@@ -1,17 +1,21 @@
 apply plugin: 'com.android.application'
 
-import java.util.regex.Pattern
-
-def doExtractStringFromManifest(name) {
-    def manifestFile = file(android.sourceSets.main.manifest.srcFile)
-    def pattern = Pattern.compile(name + "=\"(.*?)\"")
-    def matcher = pattern.matcher(manifestFile.getText())
-    matcher.find()
-    return matcher.group(1)
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
 }
 
 android {
     buildToolsVersion rootProject.ext.buildToolsVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 
     dexOptions {
         // Skip pre-dexing when running on Travis CI or when disabled via -Dpre-dex=false.
@@ -21,22 +25,17 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src']
-            resources.srcDirs = ['src']
-            aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
+            java.srcDirs = ['src/main']
+            if (rootProject.ext.allowNonFree) {
+                java.srcDirs += ['src/play']
+            } else {
+                java.srcDirs += ['src/free']
+            }
+            resources.srcDirs = java.srcDirs
+            aidl.srcDirs = java.srcDirs
+            renderscript.srcDirs = java.srcDirs
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
-        }
-
-        froyo {
-            manifest.srcFile 'froyo/AndroidManifest.xml'
-            java.srcDirs = ['froyo/java']
-        }
-        latest {
-            manifest.srcFile 'latest/AndroidManifest.xml'
-            java.srcDirs = ['latest/java']
-            assets.srcDirs = ['latest/assets']
         }
         test.setRoot('test')
     }
@@ -51,19 +50,11 @@ android {
             versionName rootProject.ext.versionName
             versionCode 14000000 + rootProject.ext.versionCode
         }
-        froyo {
-            dimension "all"
-            minSdkVersion 8
-            compileSdkVersion rootProject.ext.compileSdkVersion
-            targetSdkVersion rootProject.ext.targetSdkVersion
-            versionName rootProject.ext.versionName
-            versionCode 8000000 + rootProject.ext.versionCode
-        }
     }
 
     splits {
         abi {
-            enable gradle.startParameter.taskNames.contains("assembleLatestRelease")
+            enable rootProject.ext.allowNonFree && gradle.startParameter.taskNames.contains("assembleLatestRelease")
             // relevant archs only - these are the only available anyway for newer NDK
             include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
             universalApk true
@@ -71,11 +62,14 @@ android {
     }
 
     defaultConfig {
-        applicationIdSuffix rootProject.ext.applicationIdSuffix
-        applicationId = doExtractStringFromManifest("package")
+        // Set a separate applicationId to allow variant installations
+        // The applicationId is also used in some xml files (android:targetPackage)
+        // The packageId (in the manifest) is never changed
+        // See also applicationIdFull in common/build.gradle, must be in sync
+        applicationId = rootProject.ext.applicationIdBase
         vectorDrawables.useSupportLibrary = true
         //By default all AppCompat translations are included, saves 350KB
-        resConfigs "ar", "bs", "cs", "ca", "de", "en", "es", "fi", "fr", "hu", "id", "it", "ja", "lt", "nb", "nl", "pl", "pt", "ru", "sv", "tr", "zh-rCN"
+        resConfigs "ar", "bs", "cs", "ca", "de", "en", "es", "fa", "fi", "fr", "hu", "id", "it", "ja", "lt", "nb", "nl", "pl", "pt", "ru", "sv", "tr", "zh-rCN"
     }
 
     signingConfigs {
@@ -85,9 +79,16 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Separate the debug build, sync with common/build.gradle
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-${getGitHash()}"
+        }
         release {
-            minifyEnabled true
-            shrinkResources true
+            applicationIdSuffix ""
+
+            minifyEnabled rootProject.ext.allowNonFree
+            shrinkResources rootProject.ext.allowNonFree
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.txt'
             signingConfig signingConfigs.release
         }
@@ -116,21 +117,22 @@ repositories {
 dependencies {
     implementation project(':common')
     implementation project(':hrdevice')
-    latestWearApp project(':wear')
+    if (rootProject.ext.allowNonFree) {
+        latestWearApp project(':wear')
+    }
 
+    //noinspection GradleCompatible
     latestImplementation "com.android.support:design:${rootProject.ext.supportLibrary}"
-    //Lint bug: https://issuetracker.google.com/issues/231321
-    //noinspection GradleDependency
-    froyoImplementation 'com.android.support:design:24.1.0' //SDK <10 dropped in 24.2
-
     latestImplementation "com.android.support:cardview-v7:${rootProject.ext.supportLibrary}"
+    //noinspection GradleDependency
     latestImplementation "com.google.android.gms:play-services-wearable:${rootProject.ext.googlePlayServicesVersion}"
     latestImplementation 'com.getpebble:pebblekit:4.0.1'
-    latestImplementation ('com.mapbox.mapboxsdk:mapbox-android-sdk:5.1.1@aar'){
-        transitive=true
-    }
+    // MapBox uses telemetry, without Play there may be exceptions from mapbox: just ignore
+    //latestImplementation "com.google.android.gms:play-services-location:${rootProject.ext.googlePlayServicesVersion}"
+    latestImplementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:8.2.1'
+    latestImplementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-annotation-v8:0.7.0'
+    latestImplementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-scalebar-v8:0.2.0'
     latestImplementation 'com.jjoe64:graphview:4.2.2'
-    froyoImplementation 'com.jjoe64:graphview:4.2.1'
 
     testImplementation "junit:junit:${rootProject.ext.junitVersion}"
     testImplementation "org.mockito:mockito-core:${rootProject.ext.mockitoVersion}"
@@ -161,27 +163,36 @@ android.applicationVariants.all {
     if (rootProject.file("mapbox.properties").exists()) {
         // https://www.mapbox.com/account/
         props.load(new FileInputStream(rootProject.file("mapbox.properties")))
+        buildConfigField 'int', 'MAPBOX_ENABLED', "1"
         buildConfigField 'String', 'MAPBOX_ACCESS_TOKEN', props.mapboxAccessToken
     }
     else {
-        // Demo key
-        buildConfigField 'String', 'MAPBOX_ACCESS_TOKEN', '"pk.eyJ1IjoiY3FucXJkIiwiYSI6ImJmYjcxNDkyZjJiNzllMzYxYjA0NjA1YTI0Mzg4ODA4In0.N9lbcSp06JqIpFSP5X44Fw"'
+        buildConfigField 'int', 'MAPBOX_ENABLED', "0"
+        buildConfigField 'String', 'MAPBOX_ACCESS_TOKEN', '""'
     }
 
     if (rootProject.file("runalyze.properties").exists()) {
+        // Contact Runalyze team at https://forum.runalyze.com/
         props.load(new FileInputStream(rootProject.file("runalyze.properties")))
         buildConfigField 'int', 'RUNALYZE_ENABLED', "1"
         buildConfigField 'String', 'RUNALYZE_ID', props.CLIENT_ID
         buildConfigField 'String', 'RUNALYZE_SECRET', props.CLIENT_SECRET
     }
     else {
-        // Demo, used to testing.runalyze.com
+        // Demo, connect to testing.runalyze.com
         buildConfigField 'int', 'RUNALYZE_ENABLED', "0"
-        buildConfigField 'String', 'RUNALYZE_ID', "\"8_2jx5jt9r39ic40ooc80c8c0884okgk0owsowg808c4csg8ko8g\""
-        buildConfigField 'String', 'RUNALYZE_SECRET', "\"1v7d6nwe1v9c8skok44g0gc8cc04cc0wwwo8swwgckoogwsww4\""
+        buildConfigField 'String', 'RUNALYZE_ID', '"8_2jx5jt9r39ic40ooc80c8c0884okgk0owsowg808c4csg8ko8g"'
+        buildConfigField 'String', 'RUNALYZE_SECRET', '"1v7d6nwe1v9c8skok44g0gc8cc04cc0wwwo8swwgckoogwsww4"'
     }
 
     if (rootProject.file("dropbox.properties").exists()) {
+        // Create an app at https://www.dropbox.com/developers/apps/
+        // Dropbox API, App folder -> create app
+        // Enable additional users, Redirect URI:http://localhost:8080/runnerup/dropbox, Disallow implicit grant
+        // Set branding icon
+        // Create dropbox.properties with two lines:
+        //   CLIENT_ID="replace_dropbox_id"
+        //   CLIENT_SECRET="replace_dropbox_secret"
         props.load(new FileInputStream(rootProject.file("dropbox.properties")))
         buildConfigField 'int', 'DROPBOX_ENABLED', "1"
         buildConfigField 'String', 'DROPBOX_ID', props.CLIENT_ID
