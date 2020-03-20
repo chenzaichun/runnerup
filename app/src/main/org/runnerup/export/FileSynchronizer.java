@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 public class FileSynchronizer extends DefaultSynchronizer {
@@ -165,8 +167,11 @@ public class FileSynchronizer extends DefaultSynchronizer {
                     c.close();
                 }
             }
+
+            String date = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.getDefault()).format(new Date());
+
             String fileBase = new File(mPath).getAbsolutePath() + File.separator +
-                    String.format(Locale.getDefault(), "RunnerUp_%04d_%s.", mID, sport.TapiriikType());
+                    String.format(Locale.getDefault(), "RunnerUp_%04d_%s_%s.", mID, sport.TapiriikType(), date);
             
             if (mFormat.contains("tcx")) {
                 TCX tcx = new TCX(db);

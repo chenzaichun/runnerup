@@ -93,6 +93,7 @@ public class Formatter implements OnSharedPreferenceChangeListener {
 
         LocaleResources(Context ctx, Locale configAudioLocale) {
             resources = ctx.getResources();
+            Log.v("Formatter", "config audioLocale with: " + configAudioLocale);
             configuration = resources.getConfiguration();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
                     !ctx.getResources().getConfiguration().getLocales().isEmpty()) {
@@ -122,6 +123,8 @@ public class Formatter implements OnSharedPreferenceChangeListener {
         public String getString(int id) throws Resources.NotFoundException {
             setLang(audioLocale);
             String result = resources.getString(id);
+            Log.v("Formatter", "getString with " + audioLocale + " " + id + " " + result);
+
             setLang(defaultLocale);
             return result;
         }
@@ -130,6 +133,7 @@ public class Formatter implements OnSharedPreferenceChangeListener {
         public String getQuantityString(int id, int quantity, Object formatArgs) throws Resources.NotFoundException {
             setLang(audioLocale);
             String result = resources.getQuantityString(id, quantity, formatArgs);
+            Log.v("Formatter", "getQuantityString with " + id + " " + quantity + " " + formatArgs + " " + result);
             setLang(defaultLocale);
             return result;
         }
@@ -148,11 +152,15 @@ public class Formatter implements OnSharedPreferenceChangeListener {
 
     private LocaleResources getCueLangResources(Context ctx) {
         Locale loc = getAudioLocale(ctx);
+        Log.v("Formatter", "getCueLangResources with loc: " + loc);
         return new LocaleResources(ctx, loc);
     }
 
     public String getCueString(int msgId) {
-        return cueResources.getString(msgId);
+        String s =  cueResources.getString(msgId);
+        Log.v("Formatter", "get msgId: " + msgId + " return: "+ s);
+        return s;
+
     }
 
     @Override
