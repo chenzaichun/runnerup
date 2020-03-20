@@ -29,6 +29,7 @@ import org.runnerup.workout.Workout;
 
 import java.util.HashMap;
 import java.util.Random;
+import android.util.Log;
 
 public class TrackerCadence extends DefaultTrackerComponent implements SensorEventListener {
 
@@ -64,7 +65,7 @@ public class TrackerCadence extends DefaultTrackerComponent implements SensorEve
         // It can take seconds between sensor updates
         // Cut-off at 3s corresponds to 60/2/3 => 10 rpm (or 20 steps per minute)
         final int cutOffTime = 3;
-        final long nanoSec = 1000000000L;
+        final long nanoSec = 10000000000L;
         long now;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             now = SystemClock.elapsedRealtimeNanos();
@@ -78,6 +79,10 @@ public class TrackerCadence extends DefaultTrackerComponent implements SensorEve
             res = 0.0f;
         }
 
+/*        Log.v("!!!Cadence", "getValue: res=" + res + " timeDiff="
+                + timeDiff + " now=" + now
+                + " mPrevTime=" + mPrevTime
+                + " mPrevVal=" + mPrevVal);*/
         return res;
     }
 
@@ -86,6 +91,7 @@ public class TrackerCadence extends DefaultTrackerComponent implements SensorEve
         if (event.values != null && event.values.length > 0) {
             float latestVal = event.values[0];
             long latestTime = event.timestamp;
+
             if (mPrevTime == latestTime || mPrevTime < 0 || mPrevVal == null) {
                 mCurrentCadence = null;
             } else {
@@ -98,6 +104,13 @@ public class TrackerCadence extends DefaultTrackerComponent implements SensorEve
                     final float alpha = 0.4f;
                     mCurrentCadence = val * alpha + (1 - alpha) * mCurrentCadence;
                 }
+/*
+               Log.v("!!!Cadence", "event is: " + event.values[0] + " time is: "
+                       + event.timestamp + " mPreVal: " + mPrevVal
+                       + " mCurrentCadence: " + mCurrentCadence
+                       + " val: " + val);
+*/
+
             }
             mPrevTime = latestTime;
             mPrevVal = latestVal;
@@ -132,6 +145,8 @@ public class TrackerCadence extends DefaultTrackerComponent implements SensorEve
             final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             isMockSensor = prefs.getBoolean(context.getString(org.runnerup.R.string.pref_bt_mock), false);
         }
+
+        Log.v("!!!Cadence", "Cadence sensor is: " + sensor);
 
         return sensor;
     }
