@@ -16,6 +16,7 @@
     ~  along with this program.  If not, see <http://www.gnu.org/licenses/>.-->
     <string name="cue_activity">运动</string>
     <string name="cue_interval">间隔</string>
+    <string name="cue_end_of_lap">分段完成</string>
     <string name="cue_lap">分段</string>
     <string name="cue_warmup">热身</string>
     <string name="cue_cooldown">缓和</string>
@@ -30,43 +31,33 @@
     <string name="cue_speedup">加速</string>
     <string name="cue_slowdown">放慢速度</string>
    <plurals name="cue_hour">
-        <item quantity="one">%d 小时</item>
         <item quantity="other">%d 小时</item>
     </plurals>
     <plurals name="cue_minute">
-        <item quantity="one">%d 分钟</item>
         <item quantity="other">%d 分钟</item>
     </plurals>
     <plurals name="cue_second">
-        <item quantity="one">%d 秒</item>
         <item quantity="other">%d 秒</item>
     </plurals>
     <plurals name="cue_meter">
-        <item quantity="one">%d 米</item>
         <item quantity="other">%d 米</item>
     </plurals>
     <plurals name="cue_kilometer">
-        <item quantity="one">%s 公里</item>
         <item quantity="other">%s 公里</item>
     </plurals>
     <plurals name="cue_mile">
-        <item quantity="one">%s 英里</item>
         <item quantity="other">%s 英里</item>
     </plurals>
     <plurals name="cue_kilometers_per_hour">
-        <item quantity="one">%s 公里每小时</item>
         <item quantity="other">%s 公里每小时</item>
     </plurals>
     <plurals name="cue_miles_per_hour">
-        <item quantity="one">%s 英里每小时</item>
         <item quantity="other">%s 英里每小时</item>
     </plurals>
     <plurals name="cue_bpm">
-        <item quantity="one">%d bpm</item>
         <item quantity="other">%d bpm</item>
     </plurals>
     <plurals name="cue_rpm">
-        <item quantity="one">%d rpm</item>
         <item quantity="other">%d rpm</item>
     </plurals>
     <string name="cue_activity_paused">运动暂停</string>

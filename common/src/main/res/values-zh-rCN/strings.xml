@@ -307,4 +307,16 @@
     <string name="Lap_start">分段开始</string>
     <string name="Lock_activity_buttons">锁定活动按钮</string>
     <string name="Lock_activity_buttons_message">通过快速点击顶部锁定活动按钮</string>
+
+    <string name="Autopause_summary">在基础训练中想热身和冷身一样使用自动暂停</string>
+    <string name="Activity_countdown_summary">在基本练习中添加倒计时</string>
+    <string name="Autolap_basic_summary">基本练习中自动记圈</string>
+    <string name="Autolap_during_intervals_summary">在最后的步骤和活动中自动记圈s</string>
+    <string name="Add_countdown_after_step_that_ends_with_user_press_summary">在按键之后添加恢复和休息倒计时</string>
+    <string name="Time_triggered_audio_cue_summary">基于时间的周期性反馈</string>
+    <string name="Distance_triggered_audio_cue_summary">基于举例的周期性反馈</string>
+    <string name="End_of_lap_audio_cue_summary">结束自动记圈和活动步骤</string>
+    <string name="RunningFreeOnlinePasswordNotice">Note: Use the \"secret key\" as password set on website under Add > Sync Training > SportTracks.</string>
+    <string name="latest_feed_click_to_refresh">最新的feed （点击刷新）</string>
+    <string name="Lap_start_summary">在记圈开始、开始活动、热身、冷身时语音提示</string>
 </resources>
